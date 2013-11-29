@@ -17,6 +17,11 @@
       <%= yield %>
       <%= render 'layouts/footer' %>
       <%= debug(params) if Rails.env.development? %>
+      <% if Rails.env.development? %>
+        <% request.headers.each do |header, content| %>
+          <%= debug("#{header}: #{content}") %>
+        <% end %>
+      <% end %>
     </div>
   </body>
 </html>

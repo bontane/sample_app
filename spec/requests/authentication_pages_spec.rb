@@ -9,6 +9,10 @@ describe "Authentication" do
 
     it { should have_content('Sign in') }
     it { should have_title('Sign in') }
+    it { should_not have_link('Users',       href: users_path) }
+    it { should_not have_link('Profile') }
+    it { should_not have_link('Settings') }
+    it { should_not have_link('Sign out',    href: signout_path) }
   end
 
   describe "signin" do
@@ -28,6 +32,7 @@ describe "Authentication" do
 
     describe "with valid information" do
       let(:user) { FactoryGirl.create(:user) }
+
       before { sign_in user }
 
       it { should have_title(user.name) }
@@ -61,6 +66,20 @@ describe "Authentication" do
 
           it "should render the desired protected page" do
             expect(page).to have_title('Edit user')
+          end
+        end
+
+        describe "when signing in again" do
+          before do
+          delete signout_path
+            visit signin_path
+            fill_in "Email",    with: user.email
+            fill_in "Password", with: user.password
+            click_button "Sign in"
+           end
+
+          it "should render the default (profile) page" do
+            expect(page).to have_title(user.name)
           end
         end
       end
@@ -109,6 +128,34 @@ describe "Authentication" do
 
       describe "submitting a DELETE request to the Users#destroy action" do
         before { delete user_path(user) }
+        specify { expect(response).to redirect_to(root_url) }
+      end
+    end
+
+    describe "as admin user" do
+      let(:admin) { FactoryGirl.create(:admin) }
+
+      before { sign_in admin, no_capybara: true }
+
+      it "should not be able to delete himself" do
+        expect do
+          delete user_path(admin)
+        end.not_to change(User, :count)
+      end
+    end
+
+    describe "as signed in user" do
+      let(:user) { FactoryGirl.create(:user) }
+
+      before { sign_in user, no_capybara: true }
+
+      describe "visit sign up page" do
+        before { get new_user_path }
+        specify { expect(response).to redirect_to(root_url) }
+      end
+
+      describe "create new user" do
+        before { post users_path }
         specify { expect(response).to redirect_to(root_url) }
       end
     end
