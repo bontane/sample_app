@@ -26,11 +26,17 @@ describe "Static pages" do
         visit root_path
       end
 
-
       it "should render the user's feed" do
         user.feed.each do |item|
           expect(page).to have_selector("li##{item.id}", text: item.content)
         end
+      end
+
+      it "should contain the correct number count" do
+        expect(page).to have_content("2 microposts")
+        user.feed.where(:content => "Lorem ipsum").destroy_all
+        visit root_path
+        expect(page).to have_content("1 micropost")
       end
     end
   end

@@ -41,5 +41,23 @@ describe "Micropost pages" do
         expect { click_link "delete" }.to change(Micropost, :count).by(-1)
       end
     end
+
+    describe "as other user" do
+      let!(:other_user) { FactoryGirl.create(:user) }
+      let!(:other_post) { FactoryGirl.create(:micropost, user: other_user) }
+
+      before { visit root_path }
+
+      it { should_not have_link('delete', href: micropost_path(other_post)) }
+    end
+  end
+
+  describe "pagination" do
+    before do
+      31.times { FactoryGirl.create(:micropost, user: user) }
+      visit root_path
+    end
+    
+    it { should have_selector('div.pagination') }
   end
 end
